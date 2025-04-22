@@ -50,3 +50,48 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# === STM32 Specific ===
+
+# STM32CubeMX generated files
+*.launch
+*.log
+*.bak
+*.tmp
+*.dep
+*.layout
+*.mex
+
+# Build outputs
+/build/
+*.bin
+*.srec
+
+# STM32CubeIDE specific
+/.settings/
+/Debug/
+/Release/
+*.project
+*.cproject
+
+# IDEs
+.vscode/
+.idea/
+
+# Object dumps
+*.lst
+
+# Backup files
+*~
+*.swp
+*.swo
+*.swm
+*.swn
+
+# clangd and LSP
+compile_commands.json
+
+# Misc
+.DS_Store
+Thumbs.db
+
