@@ -18,19 +18,19 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "error.h"
+#include "DHT22.h"
+#include "adc.h"
 #include "i2c.h"
-#include "stm32l4xx_hal.h"
-#include "usart.h"
 #include "gpio.h"
+#include "app_bluenrg_ms.h"
+#include "sensors.h"
+#include "stm32l4xx_hal.h"
+#include "stm32l4xx_hal_gpio.h"
+#include "stm32l4xx_nucleo.h"
+#include <stdint.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdatomic.h>
-#include <stdio.h>
-#include "dht22.h"
-#include "ssd1306.h"
-#include "mpu6050.h"
 
 /* USER CODE END Includes */
 
@@ -68,7 +68,6 @@ int _write(int file, char *ptr, int len) {
     return len;
 }
 
-
 void DWT_Init(void) {
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;   // Enable tracing
     DWT->CYCCNT = 0;                                  // Reset the counter
@@ -81,6 +80,7 @@ void delay_us(uint32_t us) {
 
     while ((DWT->CYCCNT - start) < ticks);
 }
+
 /* USER CODE END 0 */
 
 /**
@@ -112,110 +112,33 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART2_UART_Init();
+  MX_ADC1_Init();
   MX_I2C1_Init();
+  MX_BlueNRG_MS_Init();
   /* USER CODE BEGIN 2 */
   DWT_Init();
-  switch (ssd1306_init()) {
-      case ERR_OK:
-          printf("ERR_OK");
-          break;
-      case ERR_TIMEOUT:
-          printf("ERR_TIMEOUT");
-          break;
-      case ERR_COMM_FAIL:
-          printf("ERR_COMM_FAIL");
-          break;
-      default:
-          printf("default");
-          break;
-  }
-  ssd1306_clear();
-  ssd1306_update();
-  mpu6050_init();
-  switch (DHT22_Init()) {
-      case ERR_OK:
-          printf("ERR_OK");
-          break;
-      case ERR_TIMEOUT:
-          printf("ERR_TIMEOUT");
-          break;
-      case ERR_CHECKSUM:
-          printf("ERR_CHECKSUM");
-          break;
-      default:
-          printf("default");
-          break;
-  }
+  DHT22_Init();
 
-  HAL_Delay(1000);
   /* USER CODE END 2 */
+  uint32_t prevSysTick = HAL_GetTick();
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+    uint32_t currentSysTick = HAL_GetTick();
+
+    if (currentSysTick - prevSysTick >= 5000 ) {
+        update_environmental_data();
+        HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+        prevSysTick = HAL_GetTick();
+    }
+
     /* USER CODE END WHILE */
-    Mpu6050_Sample_t sample;
-    Mpu6050_Data_t data;
 
-    float temperature;
-    float humidity;
-    char buffer[28] = "";
-
-    DHT22_Read(&temperature, &humidity);
-    mpu6050_readAverage(&sample, 20);
-    mpu6050_convert(&sample, &data);
-
-    printf(" -------------------------\r\n");
-    printf("| T:  |  %7.1f | %6.1f |\r\n", temperature, humidity);
-    printf(" -------------------------\r\n");
-    printf("| ax: |  %7.3f | %6d |\r\n", data.ax, sample.ax);
-    printf("| ay: |  %7.3f | %6d |\r\n", data.ay, sample.ay);
-    printf("| az: |  %7.3f | %6d |\r\n", data.az, sample.az);
-    printf("| gx: |  %7.3f | %6d |\r\n", data.gx, sample.gx);
-    printf("| gy: |  %7.3f | %6d |\r\n", data.gy, sample.gy);
-    printf("| gz: |  %7.3f | %6d |\r\n", data.gz, sample.gz);
-
-    sprintf(buffer, "T: %4.1f H: %4.1f", temperature, humidity);
-    ssd1306_print(0, 0, buffer);
-
-    ssd1306_print(0, 16, "       x     y    z  ");
-    sprintf(buffer, "a %6.2f %6.2f %6.2f", data.ax, data.ay, data.az);
-    ssd1306_print(0, 32, buffer);
-    sprintf(buffer, "g %6.2f %6.2f %6.2f", data.gx, data.gy, data.gz);
-    ssd1306_print(0, 48, buffer);
-
-    // ssd1306_print(0,0, "000000000000000000000");
-    // ssd1306_print(0,8, "111111111111111111111");
-    // ssd1306_print(0,16,"222222222222222222222");
-    // ssd1306_print(0,24,"333333333333333333333");
-    // ssd1306_print(0,32,"444444444444444444444");
-    // ssd1306_print(0,40,"555555555555555555555");
-    // ssd1306_print(0,48,"666666666666666666666");
-    // ssd1306_print(0,56,"777777777777777777777");
-
-
-
-    // for (uint8_t y = 0; y < 64; y++) {
-    //     for (uint8_t x = 0; x < 128; x++) {
-    //         ssd1306_draw_pixel(x, y, 1);
-    //         ssd1306_update();
-    //         HAL_Delay(1);
-    //     }
-    // }
-    // for (uint8_t y = 0; y < 64; y++) {
-    //     for (uint8_t x = 0; x < 128; x++) {
-    //         ssd1306_draw_pixel(x, y, 0);
-    //         ssd1306_update();
-    //         HAL_Delay(1);
-    //     }
-    // }
-    ssd1306_update();
-
-
-    HAL_Delay(100);
-
+    MX_BlueNRG_MS_Process();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -284,7 +207,6 @@ void Error_Handler(void)
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)
-      printf("Error_Handler");
   {
   }
   /* USER CODE END Error_Handler_Debug */

@@ -895,5 +895,37 @@
    "build/ssd1306.o"
   ],
   "file": "Core/Src/ssd1306.c"
+ },
+ {
+  "directory": "/Users/jannfz/Documents/School/DTU/Introduction to microcontroller development for IoT/Assignments/Project/low-power-baby-monitor",
+  "arguments": [
+   "arm-none-eabi-gcc",
+   "-c",
+   "-mcpu=cortex-m4",
+   "-mthumb",
+   "-mfpu=fpv4-sp-d16",
+   "-mfloat-abi=hard",
+   "-DUSE_HAL_DRIVER",
+   "-DSTM32L476xx",
+   "-ICore/Inc",
+   "-IDrivers/STM32L4xx_HAL_Driver/Inc",
+   "-IDrivers/STM32L4xx_HAL_Driver/Inc/Legacy",
+   "-IDrivers/CMSIS/Device/ST/STM32L4xx/Include",
+   "-IDrivers/CMSIS/Include",
+   "-Og",
+   "-Wall",
+   "-fdata-sections",
+   "-ffunction-sections",
+   "-g",
+   "-gdwarf-2",
+   "-MMD",
+   "-MP",
+   "-MFbuild/dht22.d",
+   "-Wa,-a,-ad,-alms=build/dht22.lst",
+   "Core/Src/dht22.c",
+   "-o",
+   "build/dht22.o"
+  ],
+  "file": "Core/Src/dht22.c"
  }
 ]

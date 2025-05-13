@@ -1,10 +1,14 @@
-
 /**
  ********************************************************************************
  * @file    ${file_name}
  * @author  ${user}
  * @date    ${date}
  * @brief   
+ *
+ * Copyright (c) 2025 Jann Feilberg Zachariasen
+ * 
+ * This software is released under the MIT License.
+ * See LICENSE file in the project root for full license information.
  ********************************************************************************
  */
 
